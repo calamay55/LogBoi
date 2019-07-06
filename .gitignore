@@ -1,0 +1,7 @@
+__pycache__/
+venv/
+logboi.sublime-project
+logboi.sublime-workspace
+properties.py
+chromedriver
+chromedriver.exe
