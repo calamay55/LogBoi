@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import time
+from getpass import getpass
 from selenium import webdriver
 # We'll probably find other pieces of selenium useful, but for now that's fine
-import properties
 import xpaths
 
 
@@ -22,9 +22,9 @@ class MibbitBrowser:
         self.driver.switch_to.frame(self.driver.find_element_by_xpath(
             xpaths.login_frame))
         username_input_box = self.driver.find_element_by_xpath(xpaths.username)
-        username_input_box.send_keys(properties.username)
+        username_input_box.send_keys(input("Username: "))
         password_input_box = self.driver.find_element_by_xpath(xpaths.password)
-        password_input_box.send_keys(properties.password)
+        password_input_box.send_keys(getpass("Password: "))
         login_button = self.driver.find_element_by_xpath(xpaths.login_button)
         login_button.click()
         time.sleep(3)  # Mibbit needs time for the login to actually occur
