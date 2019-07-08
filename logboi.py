@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import time
 from getpass import getpass
 from selenium import webdriver
@@ -30,6 +31,10 @@ class MibbitBrowser:
         time.sleep(3)  # Mibbit needs time for the login to actually occur
         self.driver.switch_to.default_content()
 
+    ''''
+    The new destination is
+    https://my.chat.mibbit.com/channellogs
+
     def navigate_to_logs_page(self):
         logs_panel_link = self.driver.find_element_by_xpath(
             xpaths.logs_panel_link)
@@ -41,9 +46,52 @@ class MibbitBrowser:
         channel_logs_link = self.driver.find_element_by_xpath(
             xpaths.channel_logs_link)
         channel_logs_link.click()
+    '''
+
+    def navigate_to_logs_page(self):
+        pass
 
     def copy_logs_to_files(self):
-        pass
+        self.driver.get("https://my.chat.mibbit.com/channellogs")
+        time.sleep(1) # Let the alert pop up
+        self.driver.switch_to.alert.accept()
+        conv_list = self.driver.find_elements_by_css_selector('body > table.itable > tbody > tr:nth-child(2) > td:nth-child(2) > div > a')
+
+        conv_numbers = []
+        for element in conv_list:
+            href = element.get_attribute("href")
+            conv_number = href.split("=")[-1]
+            if conv_number not in conv_numbers:
+                conv_numbers.append(conv_number)
+
+        conv_dates = {}
+        for conv in conv_numbers:
+            self.driver.get(f"https://my.chat.mibbit.com/channellogs?view=scd&server=3091&conv={conv}")
+            dates = []
+            dates_list = self.driver.find_elements_by_css_selector("body > table.itable > tbody > tr:nth-child(2) > td:nth-child(3) > div > a")
+            for element in dates_list:
+                href = element.get_attribute("href")
+                date = href.split("=")[-1]
+                if date not in dates:
+                    dates.append(date)
+            conv_dates[conv] = dates
+
+        for conv in conv_dates.keys():
+            self.driver.get(f"https://my.chat.mibbit.com/channellogs?view=scd&server=3091&conv={conv}")
+            selected_conv = self.driver.find_element_by_xpath(xpaths.selected_conv)
+            conv_name = selected_conv.text[1:]
+            if not os.path.isdir(conv_name):
+                os.mkdir(conv_name)
+            dates = conv_dates[conv]
+            for date in dates:
+                self.driver.get(f"https://my.chat.mibbit.com/channellogs?view=scd&server=3091&conv={conv}&date={date}")
+                logdiv = self.driver.find_element_by_xpath(xpaths.logdiv)
+                text = logdiv.text
+                stripped_chars = (c for c in text if 0 < ord(c) < 127)
+                stripped_text = ''.join(stripped_chars)
+                with open(f"{conv_name}//{date}.txt", "w+") as logfile:
+                    logfile.write(stripped_text)
+
 
     def turn_on_logboi(self):
         self.load_website()
